@@ -4,8 +4,7 @@ Created on Mon Feb  4 21:23:42 2019
 
 Defining classes that are used in the notebook located in the same folder.
 Mostly these are classes that define quantum states in different bases.
-Make sure to get the latest version. Not sure where tho since I'm an idiot
-who doesn't use GitHub.
+Make sure to get the latest version from GitHub
 
 @author: Oskari
 """
@@ -23,7 +22,7 @@ def rat(number):
 
 class CoupledBasisState:
     # constructor
-    def __init__(self, F, mF, F1, J, I1, I2):
+    def __init__(self, F, mF, F1, J, I1, I2, electronic_state = 0, energy = 0):
         self.F, self.mF  = F, mF
         self.F1 = F1
         self.J = J
@@ -31,6 +30,9 @@ class CoupledBasisState:
         self.I2 = I2
         self.isCoupled = True
         self.isUncoupled = False
+        self.electronic_state = electronic_state
+        self.energy = energy
+        
     
     # equality testing
     def __eq__(self, other):
@@ -109,6 +111,26 @@ class CoupledBasisState:
     #Makes the basis state into a state
     def make_state(self):
         return State([(1,self)])
+    
+    #Find energy of state given a list of energies and eigenvecotrs and basis QN
+    def find_energy(self,energies,V,QN):
+        energy = 0
+        
+        #Convert state to uncoupled basis
+        state = self.transform_to_uncoupled()
+        
+        #Convert to a vector that can be multiplied by the evecs to determine overlap 
+        state_vec = np.zeros((1,len(QN)))
+        for i, basis_state in enumerate(QN):
+            amp = State([(1,basis_state)])@state
+            state_vec[0,i] = amp
+        
+        coeffs = np.multiply(np.dot(state_vec,V),np.conjugate(np.dot(state_vec,V)))
+        energy = np.dot(coeffs, energies)
+        
+        
+        self.energy = energy
+        return energy
 
 #Class for uncoupled basis states
 class UncoupledBasisState:
